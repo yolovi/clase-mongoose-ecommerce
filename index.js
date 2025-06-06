@@ -10,6 +10,8 @@ app.use(express.json())
 
 //RUTAS
 app.use("/products", require("./routes/products"))
+app.use("/users", require("./routes/users") )
+app.use("/orders", require("./routes/orders"))
 
 //SERVIDOR
 app.listen(PORT, ()=>{

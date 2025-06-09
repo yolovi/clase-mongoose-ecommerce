@@ -10,10 +10,29 @@ const ProductController = {
             res.status(500).send({ message: 'Ha habido un problema al crear el producto' })
         }
     },
+    async insertComment(req, res) {
+        try {
+            const product = await Product.findByIdAndUpdate(
+                req.params._id,	//_id del producto
+                { $push: { reviews: { comment: req.body.comment, userId: req.user._id } } },
+                { new: true }
+            );
+            res.send(product);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "There was a problem with your review" });
+        }
+    },
     async getAll(req, res) {
         try {
+            //por defecto página 1 y pasar de 10 en 10
+            //req.query.page , req.query.limit
+            const { page = 1, limit = 10 } = req.query;
             const products = await Product.find()
-            res.send(products)
+                .populate("reviews.userId")
+                .limit(limit)
+                .skip((page - 1) * limit);
+            res.send(products);
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: 'Ha habido un problema al traer los productos' })

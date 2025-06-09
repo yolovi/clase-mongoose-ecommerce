@@ -34,6 +34,21 @@ const UserController = {
             res.status(500).send({ message: 'Ha habido un problema al hacer login' })
         }
     },
+    async getInfo(req, res) {
+        try {
+            const user = await User.findById(req.user._id)
+                .populate({
+                    path: "orderIds",
+                    populate: {
+                        path: "productIds",
+                    },
+                });
+            res.send(user);
+        } catch (error) {
+            console.error(error);
+        }
+    },
+
     async logout(req, res) {
         try {
             await User.findByIdAndUpdate(req.user._id, {

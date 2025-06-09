@@ -7,6 +7,7 @@ const OrderSchema = new mongoose.Schema({
         type: ObjectId,
         ref: 'User'
     },
+    productIds: [{ type: ObjectId, ref: "Product" }],
     deliveryDate: Date
 }, { timestamps: true });
 

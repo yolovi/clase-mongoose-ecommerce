@@ -9,6 +9,7 @@ router.get("/id/:_id", ProductController.getById)
 router.get("/name/:name", ProductController.getProductsByName)
 router.post("/", authentication, isAdmin, ProductController.create)
 router.put("/id/:_id", authentication, isAdmin, ProductController.update)
+router.put("/reviews/:_id", authentication, ProductController.insertComment) //También podrías usar post
 router.delete("/id/:_id", authentication, isAdmin, ProductController.delete)
 
 

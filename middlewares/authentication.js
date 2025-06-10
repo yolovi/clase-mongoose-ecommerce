@@ -1,11 +1,15 @@
 const User = require('../models/User.js');
 const Order = require('../models/Order.js');
 const jwt = require('jsonwebtoken');
-const { JWT_SIGNATURE } = require('../config/keys.js');
+require("dotenv").config()
+const JWT_SIGNATURE = process.env.JWT_SECRET
+// const { JWT_SIGNATURE } = require('../config/keys.js');
 
 const authentication = async (req, res, next) => {
     try {
         const token = req.headers.authorization;
+        console.log(token)
+        console.log(JWT_SIGNATURE)
         const payload = jwt.verify(token, JWT_SIGNATURE);
         const user = await User.findOne({ _id: payload._id, tokens: token });
         if (!user) {

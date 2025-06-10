@@ -1,4 +1,6 @@
-const { JWT_SIGNATURE } = require("../config/keys");
+// const { JWT_SIGNATURE } = require("../config/keys");
+require("dotenv").config()
+const JWT_SIGNATURE = process.env.JWT_SECRET
 const User = require("../models/User")
 const Product = require("../models/Product")
 const bcrypt = require("bcryptjs")

@@ -6,6 +6,7 @@ const { dbConnection } = require("./config/config")
 const { handleTypeError } = require("./middlewares/errors")
 
 const PORT = process.env.PORT || 3000
+
 dbConnection()
 
 //MIDDLEWARE

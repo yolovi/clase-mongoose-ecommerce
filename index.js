@@ -1,8 +1,11 @@
 const express = require("express")
 const app = express()
-const PORT = 8080
+require("dotenv").config()
+// const PORT = 8080
 const { dbConnection } = require("./config/config")
+const { handleTypeError } = require("./middlewares/errors")
 
+const PORT = process.env.PORT || 3000
 dbConnection()
 
 //MIDDLEWARE
@@ -12,6 +15,8 @@ app.use(express.json())
 app.use("/products", require("./routes/products"))
 app.use("/users", require("./routes/users") )
 app.use("/orders", require("./routes/orders"))
+
+app.use(handleTypeError)
 
 //SERVIDOR
 app.listen(PORT, ()=>{

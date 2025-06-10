@@ -1,18 +1,22 @@
 const { JWT_SIGNATURE } = require("../config/keys");
 const User = require("../models/User")
+const Product = require("../models/Product")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
 const UserController = {
-    async register(req, res) {
+    async register(req, res, next) {
         try {
+            if (!req.body.password) {
+                return res.status(400).send("La contraseña es obligatoria");
+            }
             const password = await bcrypt.hash(req.body.password, 10); //hashSync si no usas await, por ejemplo con .then
             const user = await User.create({ ...req.body, password, role: "user" });
             res.status(201).send({ message: "Usuario registrado con éxito", user })
         } catch (error) {
             console.error(error)
-            res.status(500).send({ message: 'Ha habido un problema al registrar el usuario' })
-
+            // res.status(500).send({ message: 'Ha habido un problema al registrar el usuario' })
+            next(error)
         }
     },
     async login(req, res) {
@@ -42,13 +46,33 @@ const UserController = {
                     populate: {
                         path: "productIds",
                     },
-                });
+                })
+                .populate("wishList");
             res.send(user);
         } catch (error) {
             console.error(error);
         }
     },
+    async like(req, res) {
+        try {
+            const product = await Product.findByIdAndUpdate(
+                req.params._id,
+                { $push: { likes: req.user._id } },
+                { new: true }
+            );
+            await User.findByIdAndUpdate(
+                req.user._id,
+                { $push: { wishList: req.params._id } },
+                // { $addToSet: { wishList: req.params._id } },
 
+                { new: true }
+            );
+            res.send(product);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "There was a problem with your like" });
+        }
+    },
     async logout(req, res) {
         try {
             await User.findByIdAndUpdate(req.user._id, {

@@ -1,10 +1,11 @@
 // const { JWT_SIGNATURE } = require("../config/keys");
 require("dotenv").config()
-const JWT_SIGNATURE = process.env.JWT_SECRET
+const {API_URL, JWT_SECRET } = process.env
 const User = require("../models/User")
 const Product = require("../models/Product")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+const transporter = require("../config/nodemailer");
 
 const UserController = {
     async register(req, res, next) {
@@ -30,7 +31,7 @@ const UserController = {
             if (!isMatch) {
                 return res.status(400).send("correo o contraseña incorrectos")
             }
-            const token = jwt.sign({ _id: user._id }, JWT_SIGNATURE)
+            const token = jwt.sign({ _id: user._id }, JWT_SECRET)
             if (user.tokens.length > 4) user.tokens.shift();
             user.tokens.push(token);
             await user.save();
@@ -53,6 +54,41 @@ const UserController = {
             res.send(user);
         } catch (error) {
             console.error(error);
+        }
+    },
+    async recoverPassword(req, res) {
+        try {
+            const recoverToken = jwt.sign({ email: req.params.email }, JWT_SECRET, {
+                expiresIn: "48h",
+            });
+            const url = API_URL + "/users/resetPassword/" + recoverToken;
+            await transporter.sendMail({
+                to: req.params.email,
+                subject: "Recuperar contraseña",
+                html: `<h3> Recuperar contraseña </h3>
+                <a href="${url}">Recuperar contraseña</a>
+                El enlace expirará en 48 horas`,
+            });
+            res.send({
+                message: "Un correo de recuperación se envio a tu dirección de correo",
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    },
+    async resetPassword(req, res, next) {
+        try {
+            const recoverToken = req.params.recoverToken;
+            const payload = jwt.verify(recoverToken, JWT_SECRET);
+            const password = await bcrypt.hash(req.body.password, 10);
+            await User.findOneAndUpdate(
+                { email: payload.email },
+                { password }
+            );
+            res.send({ message: "contraseña cambiada con éxito" });
+        } catch (error) {
+            next(error)
+            // console.error(error);
         }
     },
     async like(req, res) {
